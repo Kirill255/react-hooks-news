@@ -12,6 +12,7 @@ const INITIAL_STATE = {
 
 const Login = (props) => {
   const [login, setLogin] = useState(true);
+  const [authenticationError, setAuthenticationError] = useState(null);
   const {
     values,
     errors,
@@ -23,10 +24,14 @@ const Login = (props) => {
 
   async function authenticateUser() {
     const { name, email, password } = values;
-    const response = login
-      ? await firebase.login(email, password)
-      : await firebase.register(name, email, password);
-    console.log({ response });
+    try {
+      login
+        ? await firebase.login(email, password)
+        : await firebase.register(name, email, password);
+    } catch (err) {
+      console.log("Authentication error: ", err);
+      setAuthenticationError(err.message);
+    }
   }
 
   return (
@@ -64,6 +69,7 @@ const Login = (props) => {
           onChange={handleChange}
         />
         {errors.password && <p className="error-text">{errors.password}</p>}
+        {authenticationError && <p className="error-text">{authenticationError}</p>}
         <div className="flex mt3">
           <button
             type="submit"
