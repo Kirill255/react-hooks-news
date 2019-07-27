@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 import useFormValidation from "../hooks/useFormValidation";
 import validateLogin from "../utils/validateLogin";
+import firebase from "../firebase";
 
 const INITIAL_STATE = {
   name: "",
@@ -18,7 +19,15 @@ const Login = (props) => {
     handleChange,
     handleBlur,
     handleSubmit
-  } = useFormValidation(INITIAL_STATE, validateLogin);
+  } = useFormValidation(INITIAL_STATE, validateLogin, authenticateUser);
+
+  async function authenticateUser() {
+    const { name, email, password } = values;
+    const response = login
+      ? await firebase.login(email, password)
+      : await firebase.register(name, email, password);
+    console.log({ response });
+  }
 
   return (
     <div>
