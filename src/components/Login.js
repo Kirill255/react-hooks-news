@@ -10,7 +10,8 @@ const INITIAL_STATE = {
   password: ""
 };
 
-const Login = (props) => {
+// history from router
+const Login = ({ history }) => {
   const [login, setLogin] = useState(true);
   const [authenticationError, setAuthenticationError] = useState(null);
   const {
@@ -28,6 +29,7 @@ const Login = (props) => {
       login
         ? await firebase.login(email, password)
         : await firebase.register(name, email, password);
+      history.push("/");
     } catch (err) {
       console.log("Authentication error: ", err);
       setAuthenticationError(err.message);
