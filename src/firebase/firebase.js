@@ -24,6 +24,10 @@ class Firebase {
     // return await this.auth.signOut(); // сдесь нам нет необходимости возвращать промис, тоесть мы не собираемся его никак обрабатывать в then
     await this.auth.signOut();
   }
+
+  async resetPassword(email) {
+    await this.auth.sendPasswordResetEmail(email);
+  }
 }
 
 const firebase = new Firebase();
