@@ -19,6 +19,11 @@ class Firebase {
   async login(email, password) {
     return await this.auth.signInWithEmailAndPassword(email, password);
   }
+
+  async logout() {
+    // return await this.auth.signOut(); // сдесь нам нет необходимости возвращать промис, тоесть мы не собираемся его никак обрабатывать в then
+    await this.auth.signOut();
+  }
 }
 
 const firebase = new Firebase();
