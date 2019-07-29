@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState, useContext } from "react";
 
+import { FirebaseContext } from "../firebase";
 import useFormValidation from "../hooks/useFormValidation";
 import validateCreateLink from "../utils/validateCreateLink";
 
@@ -8,15 +9,43 @@ const INITIAL_STATE = {
   url: ""
 };
 
-const CreateLink = () => {
-  const { values, errors, handleChange, handleBlur, handleSubmit } = useFormValidation(
-    INITIAL_STATE,
-    validateCreateLink,
-    handleCreateLink
-  );
+// history from router
+const CreateLink = ({ history }) => {
+  const { user, firebase } = useContext(FirebaseContext);
+  const [createLinkError, setCreateLinkError] = useState(null);
+  const {
+    values,
+    errors,
+    isSubmitting,
+    handleChange,
+    handleBlur,
+    handleSubmit
+  } = useFormValidation(INITIAL_STATE, validateCreateLink, handleCreateLink);
 
-  function handleCreateLink() {
-    console.log("Link created!");
+  async function handleCreateLink() {
+    try {
+      if (!user) {
+        history.push("/login");
+      } else {
+        const { description, url } = values;
+        const newLink = {
+          description,
+          url,
+          postedBy: {
+            id: user.uid,
+            name: user.displayName
+          },
+          votes: [],
+          comments: [],
+          created: Date.now()
+        };
+        await firebase.db.collection("links").add(newLink);
+        history.push("/");
+      }
+    } catch (err) {
+      console.log("Create link error: ", err);
+      setCreateLinkError(err.message);
+    }
   }
 
   return (
@@ -34,7 +63,7 @@ const CreateLink = () => {
       {errors.description && <p className="error-text">{errors.description}</p>}
       <input
         className={errors.url && "error-input"}
-        type="text"
+        type="url"
         placeholder="The URL for the link"
         autoComplete="off"
         name="url"
@@ -43,7 +72,13 @@ const CreateLink = () => {
         onChange={handleChange}
       />
       {errors.url && <p className="error-text">{errors.url}</p>}
-      <button className="button" type="submit">
+      {createLinkError && <p className="error-text">{createLinkError}</p>}
+      <button
+        type="submit"
+        className="button"
+        disabled={isSubmitting}
+        style={{ background: isSubmitting ? "grey" : "orange" }}
+      >
         Submit
       </button>
     </form>
