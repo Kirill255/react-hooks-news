@@ -1,15 +1,43 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useContext } from "react";
+import { withRouter, Link } from "react-router-dom";
 import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 
+import { FirebaseContext } from "../firebase";
 import getDomain from "../utils/getDomain";
 
-const LinkItem = ({ link, showCount, index }) => {
+// // history from router
+const LinkItem = ({ history, link, showCount, index }) => {
+  const { user, firebase } = useContext(FirebaseContext);
+
+  async function handleVote() {
+    try {
+      if (!user) {
+        history.push("/login");
+      } else {
+        const linkRef = firebase.db.collection("links").doc(link.id);
+        const doc = await linkRef.get();
+        if (!doc.exists) {
+          console.log("No such document.");
+        } else {
+          // console.log(doc.data());
+          const previousVotes = doc.data().votes;
+          const newVote = { votedBy: { id: user.uid, name: user.displayName } };
+          const updatedVotes = [...previousVotes, newVote];
+          linkRef.update({ votes: updatedVotes });
+        }
+      }
+    } catch (err) {
+      console.log("Vote error: ", err);
+    }
+  }
+
   return (
     <div className="flex items-start mt2">
       <div className="flex items-center">
         {showCount && <span className="gray">{index}.</span>}
-        <div className="vote-button">▲</div>
+        <div className="vote-button" onClick={handleVote}>
+          ▲
+        </div>
       </div>
       <div className="ml1">
         <div>
@@ -27,4 +55,4 @@ const LinkItem = ({ link, showCount, index }) => {
   );
 };
 
-export default LinkItem;
+export default withRouter(LinkItem);
