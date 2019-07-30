@@ -31,6 +31,19 @@ const LinkItem = ({ history, link, showCount, index }) => {
     }
   }
 
+  async function handleDeleteLink() {
+    // we don't check for the user because the link is displayed only if postedByAuthUser
+    try {
+      const linkRef = firebase.db.collection("links").doc(link.id);
+      await linkRef.delete();
+      console.log(`Document with ID ${link.id} was deleted.`);
+    } catch (err) {
+      console.log("Delete link error: ", err);
+    }
+  }
+
+  const postedByAuthUser = user && user.uid === link.postedBy.id;
+
   return (
     <div className="flex items-start mt2">
       <div className="flex items-center">
@@ -49,6 +62,14 @@ const LinkItem = ({ history, link, showCount, index }) => {
           <Link to={`/link/${link.id}`}>
             {link.comments.length > 0 ? `${link.comments.length} comments` : "discuss"}
           </Link>
+          {postedByAuthUser && (
+            <>
+              {" | "}
+              <span className="delete-button" onClick={handleDeleteLink}>
+                delete
+              </span>
+            </>
+          )}
         </div>
       </div>
     </div>
