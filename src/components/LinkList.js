@@ -4,12 +4,15 @@ import LinkItem from "./LinkItem";
 
 import { FirebaseContext } from "../firebase";
 
-const LinkList = () => {
+// location from router
+const LinkList = ({ location }) => {
   const [links, setLinks] = useState([]);
   const { firebase } = useContext(FirebaseContext);
+  const isNewPage = location.pathname.includes("new");
 
   useEffect(() => {
-    const unsubscribe = firebase.db.collection("links").onSnapshot((docsSnapshot) => {
+    // prettier-ignore
+    const unsubscribe = firebase.db.collection("links").orderBy("created", "desc").onSnapshot((docsSnapshot) => {
       console.log(docsSnapshot);
       if (docsSnapshot.empty) {
         console.log("No matching documents.");
@@ -24,9 +27,15 @@ const LinkList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const renderLinks = () => {
+    if (isNewPage) return links;
+    const topLinks = links.slice().sort((a, b) => b.votes.length - a.votes.length);
+    return topLinks;
+  };
+
   return (
     <div>
-      {links.map((link, index) => (
+      {renderLinks().map((link, index) => (
         <LinkItem key={link.id} link={link} showCount={true} index={index + 1} />
       ))}
     </div>
