@@ -23,7 +23,8 @@ const LinkItem = ({ history, link, showCount, index }) => {
           const previousVotes = doc.data().votes;
           const newVote = { votedBy: { id: user.uid, name: user.displayName } };
           const updatedVotes = [...previousVotes, newVote];
-          linkRef.update({ votes: updatedVotes });
+          const voteCount = updatedVotes.length;
+          linkRef.update({ votes: updatedVotes, voteCount });
         }
       }
     } catch (err) {
@@ -65,7 +66,7 @@ const LinkItem = ({ history, link, showCount, index }) => {
           <span className="link">({getDomain(link.url)})</span>
         </div>
         <div className="f6 lh-copy gray">
-          {link.votes.length} votes by {link.postedBy.name} {distanceInWordsToNow(link.created)}
+          {link.voteCount} votes by {link.postedBy.name} {distanceInWordsToNow(link.created)}
           {" | "}
           <Link to={`/link/${link.id}`}>
             {link.comments.length > 0 ? `${link.comments.length} comments` : "discuss"}

@@ -36,6 +36,7 @@ const CreateLink = ({ history }) => {
             name: user.displayName
           },
           votes: [],
+          voteCount: 0,
           comments: [],
           created: Date.now()
         };

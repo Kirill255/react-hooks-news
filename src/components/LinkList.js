@@ -8,34 +8,38 @@ import { FirebaseContext } from "../firebase";
 const LinkList = ({ location }) => {
   const [links, setLinks] = useState([]);
   const { firebase } = useContext(FirebaseContext);
-  const isNewPage = location.pathname.includes("new");
+  const isTopPage = location.pathname.includes("top");
 
   useEffect(() => {
-    // prettier-ignore
-    const unsubscribe = firebase.db.collection("links").orderBy("created", "desc").onSnapshot((docsSnapshot) => {
-      console.log(docsSnapshot);
-      if (docsSnapshot.empty) {
-        console.log("No matching documents.");
-        return;
-      }
-      const linksFromDB = docsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })); // return a new object with the added id
-      setLinks(linksFromDB);
-    });
+    const unsubscribe = getLinks();
 
     return () => unsubscribe();
     // https://github.com/facebook/react/issues/14920
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isTopPage]);
 
-  const renderLinks = () => {
-    if (isNewPage) return links;
-    const topLinks = links.slice().sort((a, b) => b.votes.length - a.votes.length);
-    return topLinks;
-  };
+  function getLinks() {
+    if (isTopPage) {
+      // prettier-ignore
+      return firebase.db.collection("links").orderBy("voteCount", "desc").onSnapshot(handleSnapshot);
+    }
+    // prettier-ignore
+    return firebase.db.collection("links").orderBy("created", "desc").onSnapshot(handleSnapshot);
+  }
+
+  function handleSnapshot(docsSnapshot) {
+    console.log(docsSnapshot);
+    if (docsSnapshot.empty) {
+      console.log("No matching documents.");
+      return;
+    }
+    const linksFromDB = docsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })); // return a new object with the added id
+    setLinks(linksFromDB);
+  }
 
   return (
     <div>
-      {renderLinks().map((link, index) => (
+      {links.map((link, index) => (
         <LinkItem key={link.id} link={link} showCount={true} index={index + 1} />
       ))}
     </div>
