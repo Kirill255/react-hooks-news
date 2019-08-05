@@ -4,6 +4,8 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Firebase
 
+### Functions
+
 1. `npx firebase-tools login`
 
 2. `npx firebase-tools init functions`
@@ -17,3 +19,17 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - Do you want to install dependencies with npm now? _Yes_
 
 3. After creating function `npx firebase-tools deploy --only functions`
+
+### Deploy
+
+1. `npm run build`
+
+2. `npx firebase-tools init hosting`
+
+- What do you want to use as your public directory? _build_
+
+- Configure as a single-page app (rewrite all urls to /index.html)? _y_
+
+- File build/index.html already exists. Overwrite? _N_
+
+3. `npx firebase-tools deploy`
