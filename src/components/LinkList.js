@@ -33,6 +33,18 @@ const LinkList = ({ location, match, history }) => {
     } else if (hasCursor) {
       // prettier-ignore
       return firebase.db.collection("links").orderBy("created", "desc").startAfter(cursor.created).limit(LINKS_PER_PAGE).onSnapshot(handleSnapshot);
+    } else {
+      const offset = page * LINKS_PER_PAGE - LINKS_PER_PAGE;
+      fetch(`https://us-central1-vue-hq-12eb5.cloudfunctions.net/linksPagination?offset=${offset}`)
+        .then((res) => res.json())
+        .then((res) => {
+          const linksFromDB = res.links;
+          const lastLink = linksFromDB[linksFromDB.length - 1];
+          setLinks(linksFromDB);
+          setCursor(lastLink);
+        });
+
+      return () => {}; // заглушка для unsubscribe, тоесть getLinks возвращает функцию от которой потом можно отписаться
     }
   }
 
@@ -61,12 +73,12 @@ const LinkList = ({ location, match, history }) => {
     }
   };
 
-  // const pageIndex = page ? (page - 1) * LINKS_PER_PAGE + 1 : 0;
+  const pageIndex = page ? (page - 1) * LINKS_PER_PAGE + 1 : 0;
 
   return (
     <div>
       {links.map((link, index) => (
-        <LinkItem key={link.id} link={link} showCount={true} index={index + 1} />
+        <LinkItem key={link.id} link={link} showCount={true} index={index + pageIndex} />
       ))}
       {isNewPage && (
         <div className="pagination">
