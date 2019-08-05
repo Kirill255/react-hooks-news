@@ -9,10 +9,12 @@ import { LINKS_PER_PAGE } from "../utils";
 const LinkList = ({ location, match, history }) => {
   const [links, setLinks] = useState([]);
   const [cursor, setCursor] = useState(null);
+  const [loading, setLoading] = useState(false);
   const { firebase } = useContext(FirebaseContext);
   const isNewPage = location.pathname.includes("new");
   const isTopPage = location.pathname.includes("top");
   const page = Number(match.params.page);
+  const linksRef = firebase.db.collection("links");
 
   useEffect(() => {
     const unsubscribe = getLinks();
@@ -23,16 +25,17 @@ const LinkList = ({ location, match, history }) => {
   }, [isTopPage, page]);
 
   function getLinks() {
+    setLoading(true);
     const hasCursor = Boolean(cursor);
     if (isTopPage) {
       // prettier-ignore
-      return firebase.db.collection("links").orderBy("voteCount", "desc").limit(LINKS_PER_PAGE).onSnapshot(handleSnapshot);
+      return linksRef.orderBy("voteCount", "desc").limit(LINKS_PER_PAGE).onSnapshot(handleSnapshot);
     } else if (page === 1) {
       // prettier-ignore
-      return firebase.db.collection("links").orderBy("created", "desc").limit(LINKS_PER_PAGE).onSnapshot(handleSnapshot);
+      return linksRef.orderBy("created", "desc").limit(LINKS_PER_PAGE).onSnapshot(handleSnapshot);
     } else if (hasCursor) {
       // prettier-ignore
-      return firebase.db.collection("links").orderBy("created", "desc").startAfter(cursor.created).limit(LINKS_PER_PAGE).onSnapshot(handleSnapshot);
+      return linksRef.orderBy("created", "desc").startAfter(cursor.created).limit(LINKS_PER_PAGE).onSnapshot(handleSnapshot);
     } else {
       const offset = page * LINKS_PER_PAGE - LINKS_PER_PAGE;
       fetch(`https://us-central1-vue-hq-12eb5.cloudfunctions.net/linksPagination?offset=${offset}`)
@@ -42,6 +45,7 @@ const LinkList = ({ location, match, history }) => {
           const lastLink = linksFromDB[linksFromDB.length - 1];
           setLinks(linksFromDB);
           setCursor(lastLink);
+          setLoading(false);
         });
 
       return () => {}; // заглушка для unsubscribe, тоесть getLinks возвращает функцию от которой потом можно отписаться
@@ -58,6 +62,7 @@ const LinkList = ({ location, match, history }) => {
     const lastLink = linksFromDB[linksFromDB.length - 1];
     setLinks(linksFromDB);
     setCursor(lastLink);
+    setLoading(false);
   }
 
   const visitPreviousPage = () => {
@@ -76,7 +81,7 @@ const LinkList = ({ location, match, history }) => {
   const pageIndex = page ? (page - 1) * LINKS_PER_PAGE + 1 : 0;
 
   return (
-    <div>
+    <div style={{ opacity: loading ? 0.25 : 1 }}>
       {links.map((link, index) => (
         <LinkItem key={link.id} link={link} showCount={true} index={index + pageIndex} />
       ))}
